@@ -40,14 +40,9 @@ constant GLint64EXT is export = int64;
 constant GLuint64 is export = uint64;
 constant GLuint64EXT is export = uint64;
 class GLsync is repr('CPointer') is export {}
-# compiler apparently doesn't like these
-#constant GLDEBUGPROC    is export = :(GLenum $source, GLenum $type, GLuint $id, GLenum $severity, GLsizei $length, Str $message, Pointer $userParam);
-#constant GLDEBUGPROCARB is export = :(GLenum $source, GLenum $type, GLuint $id, GLenum $severity, GLsizei $length, Str $message, Pointer $userParam);
-#constant GLDEBUGPROCKHR is export = :(GLenum $source, GLenum $type, GLuint $id, GLenum $severity, GLsizei $length, Str $message, Pointer $userParam);
-
-#constant GLDEBUGPROCAMD is export = :(GLuint $id, GLenum $category, GLenum $severity, GLsizei $length, Str $message, Pointer $userParam);
 constant GLhalfNV is export = c_ushort;
 constant GLvdpauSurfaceNV is export = GLintptr;
+# https://github.com/rakudo/rakudo/issues/1301
 #constant GLVULKANPROCNV is export = :();
 constant GL_CURRENT_BIT is export = 0x00000001;
 constant GL_POINT_BIT is export = 0x00000002;
@@ -5585,10 +5580,10 @@ sub load-gl-procs is export {
 	&glCullParameterfvEXT = nativecast(:(GLenum $pname, CArray[GLfloat] $params), SDL_GL_GetProcAddress('glCullParameterfvEXT')) or return False;
 	&glCurrentPaletteMatrixARB = nativecast(:(GLint $index), SDL_GL_GetProcAddress('glCurrentPaletteMatrixARB')) or return False;
 	&glCurrentPaletteMatrixOES = nativecast(:(GLuint $matrixpaletteindex), SDL_GL_GetProcAddress('glCurrentPaletteMatrixOES')) or return False;
-	&glDebugMessageCallback = nativecast(:(Pointer $userParam), SDL_GL_GetProcAddress('glDebugMessageCallback')) or return False;
-	&glDebugMessageCallbackAMD = nativecast(:(Pointer $userParam), SDL_GL_GetProcAddress('glDebugMessageCallbackAMD')) or return False;
-	&glDebugMessageCallbackARB = nativecast(:(Pointer $userParam), SDL_GL_GetProcAddress('glDebugMessageCallbackARB')) or return False;
-	&glDebugMessageCallbackKHR = nativecast(:(Pointer $userParam), SDL_GL_GetProcAddress('glDebugMessageCallbackKHR')) or return False;
+	&glDebugMessageCallback = nativecast(:(&callback (GLenum, GLenum, GLuint, GLenum, GLsizei, Str, Pointer), Pointer $userParam), SDL_GL_GetProcAddress('glDebugMessageCallback')) or return False;
+	&glDebugMessageCallbackAMD = nativecast(:(&callback (GLuint, GLenum, GLenum, GLsizei, Str, Pointer), Pointer $userParam), SDL_GL_GetProcAddress('glDebugMessageCallbackAMD')) or return False;
+	&glDebugMessageCallbackARB = nativecast(:(&callback (GLenum, GLenum, GLuint, GLenum, GLsizei, Str, Pointer), Pointer $userParam), SDL_GL_GetProcAddress('glDebugMessageCallbackARB')) or return False;
+	&glDebugMessageCallbackKHR = nativecast(:(&callback (GLenum, GLenum, GLuint, GLenum, GLsizei, Str, Pointer), Pointer $userParam), SDL_GL_GetProcAddress('glDebugMessageCallbackKHR')) or return False;
 	&glDebugMessageControl = nativecast(:(GLenum $source, GLenum $type, GLenum $severity, GLsizei $count, CArray[GLuint] $ids, GLboolean $enabled), SDL_GL_GetProcAddress('glDebugMessageControl')) or return False;
 	&glDebugMessageControlARB = nativecast(:(GLenum $source, GLenum $type, GLenum $severity, GLsizei $count, CArray[GLuint] $ids, GLboolean $enabled), SDL_GL_GetProcAddress('glDebugMessageControlARB')) or return False;
 	&glDebugMessageControlKHR = nativecast(:(GLenum $source, GLenum $type, GLenum $severity, GLsizei $count, CArray[GLuint] $ids, GLboolean $enabled), SDL_GL_GetProcAddress('glDebugMessageControlKHR')) or return False;

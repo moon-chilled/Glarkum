@@ -22,6 +22,10 @@ void main() {
 }
 EOF
 
+sub gl-log(GLenum $source, GLenum $type, GLuint $id, GLenum $severity, GLsizei $length, Str $message, Pointer $user-data) {
+	say "OpenGL: $message"
+}
+
 sub MAIN {
 	my $win = SDL_CreateWindow("TA", SDL_WINDOWPOS_UNDEFINED_MASK, SDL_WINDOWPOS_UNDEFINED_MASK, 640, 480, SHOWN +| OPENGL);
 	die unless $win;
@@ -31,6 +35,9 @@ sub MAIN {
 	die unless SDL_GL_CreateContext $win;
 	die unless load-gl-procs;
 	say "GL version {glGetString(GL_VERSION)}";
+	# https://github.com/Raku/problem-solving/issues/96
+	#glEnable(GL_DEBUG_OUTPUT);
+	#glDebugMessageCallback(&gl-log, Pointer);
 
 	my @vertices := CArray[num32].new(
 		-1e0, -1e0, 0e0, 0e0, 0e0, 1e0, 1e0,

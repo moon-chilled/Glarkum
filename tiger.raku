@@ -45,18 +45,15 @@ constant GLint64EXT is export = int64;
 constant GLuint64 is export = uint64;
 constant GLuint64EXT is export = uint64;
 class GLsync is repr('CPointer') is export {}
-# compiler apparently doesn't like these
-#constant GLDEBUGPROC    is export = :(GLenum $source, GLenum $type, GLuint $id, GLenum $severity, GLsizei $length, Str $message, Pointer $userParam);
-#constant GLDEBUGPROCARB is export = :(GLenum $source, GLenum $type, GLuint $id, GLenum $severity, GLsizei $length, Str $message, Pointer $userParam);
-#constant GLDEBUGPROCKHR is export = :(GLenum $source, GLenum $type, GLuint $id, GLenum $severity, GLsizei $length, Str $message, Pointer $userParam);
-
-#constant GLDEBUGPROCAMD is export = :(GLuint $id, GLenum $category, GLenum $severity, GLsizei $length, Str $message, Pointer $userParam);
 constant GLhalfNV is export = c_ushort;
 constant GLvdpauSurfaceNV is export = GLintptr;
+# https://github.com/rakudo/rakudo/issues/1301
 #constant GLVULKANPROCNV is export = :();
 EOF
 
-my @bad-types = <GLDEBUGPROC GLDEBUGPROCARB GLDEBUGPROCKHR GLDEBUGPROCAMD GLVULKANPROCNV>;
+my %callback-types;
+%callback-types<GLDEBUGPROC GLDEBUGPROCARB GLDEBUGPROCKHR> «=» '(GLenum, GLenum, GLuint, GLenum, GLsizei, Str, Pointer)';
+%callback-types<GLDEBUGPROCAMD> = '(GLuint, GLenum, GLenum, GLsizei, Str, Pointer)';
 
 sub time($what) {
 	state $time = now;
@@ -165,16 +162,25 @@ for @commands -> $command {
 
 $fp.write: "sub load-gl-procs is export \{\n".encode;
 for @commands -> $command {
-	#say $command;
+	# this wants to return a function pointer
+	# considering that you can't use vulkan from raku (yet?), this is not really a loss
+	next if $command.name eq "glGetVkProcAddrNV";
+
 	sub type-to-string(Type $t) {
 		my $ret = $t.name;
 		my $tp = $t.pointer;
-		next if $ret ∈ @bad-types;
 		if $ret eq 'GLchar'|'GLcharARB' && $tp { $ret = 'Str'; $tp-- }
 		for ^$tp { if $ret eq 'void' { $ret = 'Pointer' } else { $ret = "CArray[$ret]" } };
 		$ret
 	}
-	my $signature-params = $command.params.map({type-to-string($_[0]) ~ " \$$_[1]"}).join(', ');
+	sub param-to-string(Type $t, Str $param-name) {
+		if $t.name ∈ %callback-types {
+			"&$param-name %callback-types{$t.name}"
+		} else {
+			"&type-to-string($t) \$$param-name"
+		}
+	}
+	my $signature-params = $command.params.map({param-to-string |$_}).join(', ');
 	my $return = type-to-string $command.ret;
 	if $command.name eq 'glGetString'|'glGetStringi' { $return = "Str" } #https://github.com/KhronosGroup/OpenGL-Registry/issues/363
 	my $return-string = $return eq 'void' ?? '' !! " --> $return";
