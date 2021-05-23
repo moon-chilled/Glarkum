@@ -1,0 +1,5 @@
+Hacked-up OpenGL loader and bindings for raku.
+Currently depends on SDL (though you needed that anyway for windowing).
+
+Try: raku -I. examples/triangle.raku
+(And see examples/triangle.c for the equivalent C snippet.)
