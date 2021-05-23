@@ -1,0 +1,8 @@
+*.o
+/examples/triangle
+.precomp
+.*.swp
+.*.swo
+.*.swn
+.*.swm
+.*.swl

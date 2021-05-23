@@ -1,0 +1,3 @@
+[submodule "opengl-registry"]
+	path = opengl-registry
+	url = https://github.com/KhronosGroup/opengl-registry
