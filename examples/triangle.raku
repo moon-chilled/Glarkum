@@ -62,7 +62,7 @@ sub MAIN {
 	glVertexArrayAttribFormat($vao, 1, 4, GL_FLOAT, GL_FALSE, 3 * nativesizeof(num32));
 	glVertexArrayAttribBinding($vao, 1, 0);
 
-	glNamedBufferData($vbo, 21 * nativesizeof(num32), nativecast(Pointer, @vertices), GL_STATIC_DRAW);
+	glNamedBufferData($vbo, @vertices.elems * nativesizeof(num32), nativecast(Pointer, @vertices), GL_STATIC_DRAW);
 
 	{
 		my @success := CArray[GLint].allocate(1);
